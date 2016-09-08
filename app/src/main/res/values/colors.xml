@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<color name="colorPrimary">#3F51B5</color>
+	<color name="colorPrimaryDark">#303F9F</color>
+	<color name="colorAccent">#FF4081</color>
+	<color name="timerBackgroundEnd">#299E88</color>
+	<color name="timerBackgroundStart">#4FCCC1</color>
+	<color name="timerRemain">#02FFBA</color>
+	<color name="timerRemain1">#9AFF9A</color>
+	<color name="timerRemain2">#FFF886</color>
+	<color name="timerPassed">#5BCFA6</color>
+</resources>
