@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
+	android:id="@+id/activity_main"
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
@@ -9,9 +10,24 @@
 	android:paddingRight="@dimen/activity_horizontal_margin"
 	android:paddingTop="@dimen/activity_vertical_margin"
 	tools:context="com.gao.jiefly.nubiaclock.MainActivity">
+	<com.gao.jiefly.nubiaclock.Timer android:id="@+id/id_timer"
+	                                 android:layout_width="match_parent"
+	                                 android:layout_height="400dp"
+	                                 android:padding="10dp"/>
 
-	<com.gao.jiefly.nubiaclock.Timer android:layout_width="match_parent"
-	                                 android:paddingRight="20dp"
-	                                 android:paddingLeft="20dp"
-	                                 android:layout_height="300dp"/>
+	<Button android:id="@+id/id_set_time_btn" android:layout_width="wrap_content" android:layout_below="@id/id_timer"
+	        android:layout_height="wrap_content"/>
+	<Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/id_start_btn" android:text="start" android:layout_toRightOf="@id/id_set_time_btn"/>
+	<LinearLayout android:layout_width="match_parent" android:layout_alignParentBottom="true" android:layout_height="match_parent" android:orientation="horizontal">
+		<EditText android:id="@+id/id_time_hour_et" android:layout_width="30dp"
+		          android:layout_height="wrap_content"
+		          android:inputType="number"/>
+		<EditText android:id="@+id/id_time_min__et" android:layout_width="30dp"
+		          android:layout_height="wrap_content"
+		           android:inputType="number"/>
+		<EditText android:id="@+id/id_time_second_et" android:layout_width="30dp"
+		          android:layout_height="wrap_content"
+		           android:inputType="number"/>
+	</LinearLayout>
+
 </RelativeLayout>
