@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
     int hour;
@@ -19,20 +20,23 @@ public class MainActivity extends AppCompatActivity {
         final EditText timeH = (EditText) findViewById(R.id.id_time_hour_et);
         final EditText timeM = (EditText) findViewById(R.id.id_time_min__et);
         final EditText timeS = (EditText) findViewById(R.id.id_time_second_et);
+        timer.setOnTimeUpListener(new Timer.OnTimeUpListener() {
+            @Override
+            public void onTimeUp() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(getApplicationContext(),"time up",Toast.LENGTH_SHORT).show();
+                    }
+                });
 
+            }
+        });
         Button btn = (Button) findViewById(R.id.id_set_time_btn);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                hour = Integer.valueOf(timeH.getText().toString());
-                min = Integer.valueOf(timeM.getText().toString());
-                second = Integer.valueOf(timeS.getText().toString());
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        timer.setTime(hour,min,second);
-                    }
-                });
+                timer.stopTimer();
             }
         });
         findViewById(R.id.id_start_btn).setOnClickListener(new View.OnClickListener() {
