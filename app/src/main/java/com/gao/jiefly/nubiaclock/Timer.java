@@ -49,7 +49,9 @@ public class Timer extends View {
     Paint passCirclePaint;
     Paint remainCirclePaint;
     Paint bundlePaint;
-
+    //    for sdk <=21  ,drawArc
+    RectF rectP;
+    RectF rectR;
 
     int bundleStatu = BUNDLE_STATU_NORMAL;
 
@@ -94,6 +96,8 @@ public class Timer extends View {
     long passTime;
     float timerValue;
 
+    int lastCirclePaintStatu;
+
 
     TimerTask mTimerTask;
     java.util.Timer mTimer;
@@ -135,7 +139,7 @@ public class Timer extends View {
             public void run() {
 //               ms
                 passTime = (System.currentTimeMillis() - startTime);
-                timerValue = timerValue - 0.05f;
+                timerValue = timerValue - 0.02f;
                 timerValue2Time(timerValue);
                 time = formateTime(hour, minute, second);
                 currentAngle = time2Angle(hour, minute, second);
@@ -164,7 +168,7 @@ public class Timer extends View {
         startTime = System.currentTimeMillis();
         timerValue = hour * 60 * 60 + minute * 60 + second;
         endTime = (long) (startTime + timerValue * 1000);
-        mTimer.schedule(mTimerTask, 0, 50);
+        mTimer.schedule(mTimerTask, 0, 20);
         bundleStatu = BUNDLE_STATU_CHANGING;
 
     }
@@ -174,6 +178,34 @@ public class Timer extends View {
         oldSecond = second;
         oldHour = hour;
         oldMinute = minute;
+    }
+
+    public void resetTimer() {
+        if (isTimeZero())
+            return;
+        stopTimer();
+        startTime = System.currentTimeMillis();
+        new java.util.Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                float x = (System.currentTimeMillis() - startTime) / 1000.0f;
+                if (x >= 0.95) {
+                    currentAngle = 0;
+                    time = angle2Time(0);
+                    bundleStatu = BUNDLE_STATU_NORMAL;
+                    postInvalidate();
+                    this.cancel();
+                    return;
+                }
+                currentAngle = currentAngle * (1 - x);
+                bundleStatu = BUNDLE_STATU_NORMAL;
+                postInvalidate();
+            }
+        }, 0, 20);
+    }
+
+    private boolean isTimeZero() {
+        return hour == 0 && minute == 0 && second == 0;
     }
 
     public void stopTimer() {
@@ -284,7 +316,6 @@ public class Timer extends View {
                 bundleCircleCenter.y = (int) (radius * Math.sin(angle));
                 bundleEnd.x = bundleCircleCenter.x;
                 bundleEnd.y = bundleCircleCenter.y;
-
                 break;
             case BUNDLE_STATU_CHANGING:
 //                anim start in these time
@@ -296,7 +327,8 @@ public class Timer extends View {
                     bundleCircleCenter.y = (int) (radius * Math.sin(angle));
                     bundleEnd.x = bundleCircleCenter.x;
                     bundleEnd.y = bundleCircleCenter.y;
-                    bundleCircleRadius = DEFAULT_BUNDLE_CIRCLE_RADIUS / 2;
+                    bundleCircleRadius = DEFAULT_BUNDLE_CIRCLE_RADIUS * (2 - (5 * time / BUNDLE_ANIM_TIME)) / 2;
+                    break;
                 }
 //                 bundle anim
                 if (passTime > BUNDLE_ANIM_TIME / 5 && passTime < BUNDLE_ANIM_TIME) {
@@ -310,19 +342,16 @@ public class Timer extends View {
                     bundleCircleCenter.x = bundleEnd.x;
                     bundleCircleCenter.y = bundleEnd.y;
                     bundleCircleRadius = DEFAULT_BUNDLE_CIRCLE_RADIUS / 2;
-
+                    break;
                 }
 //                anim end in these time
                 if (passTime >= 300) {
                     bundleStatu = BUNDLE_STATU_END;
                 }
-                postInvalidate();
-                break;
             case BUNDLE_STATU_END:
                 bundleCircleRadius = DEFAULT_BUNDLE_CIRCLE_RADIUS / 2;
                 bundleCircleCenter.x = (int) ((maxTextWidth / 2 - DEFAULT_REMAIN_WIDTH + DEFAULT_CIRCLE_SPAN) * Math.cos(angle));
                 bundleCircleCenter.y = (int) ((maxTextWidth / 2 - DEFAULT_REMAIN_WIDTH + DEFAULT_CIRCLE_SPAN) * Math.sin(angle));
-                postInvalidate();
                 break;
         }
 
@@ -332,28 +361,40 @@ public class Timer extends View {
     private void changeCirclePaintConfig() {
         switch ((int) (currentAngle / 360)) {
             case 0:
+                if (lastCirclePaintStatu == 0)
+                    break;
 //                only currentAngle < 360 ，pass circle width is small
                 passColor = DEFAULT_PASS_COLOR;
                 remainColor = DEFAULT_REMAIN_COLOR_1;
                 passWidth = DEFAULT_PASS_WIDTH;
                 resetPaint();
+                lastCirclePaintStatu = 0;
                 break;
             case 1:
+                if (lastCirclePaintStatu == 1)
+                    break;
                 passColor = DEFAULT_REMAIN_COLOR_1;
                 remainColor = DEFAULT_REMAIN_COLOR_2;
                 passWidth = DEFAULT_REMAIN_WIDTH;
                 resetPaint();
+                lastCirclePaintStatu = 1;
                 break;
             case 2:
+                if (lastCirclePaintStatu == 2)
+                    break;
                 passColor = DEFAULT_REMAIN_COLOR_2;
                 remainColor = DEFAULT_REMAIN_COLOR_3;
                 passWidth = DEFAULT_REMAIN_WIDTH;
                 resetPaint();
+                lastCirclePaintStatu = 2;
                 break;
 //            no pass
             default:
+                if (lastCirclePaintStatu >= 3)
+                    break;
                 remainColor = DEFAULT_REMAIN_COLOR_3;
                 resetPaint();
+                lastCirclePaintStatu = (int) (currentAngle / 360);
         }
     }
 
@@ -399,18 +440,20 @@ public class Timer extends View {
             passCirclePaint.setAlpha(alpha);
             remainCirclePaint.setAlpha(alpha);
             if (sdkOk) {
-
                 canvas.drawArc(-radiusPass, -radiusPass, radiusPass, radiusPass, angle - 90, 360 - angle, false, passCirclePaint);
                 canvas.drawArc(-radiusRemain, -radiusRemain, radiusRemain, radiusRemain, -90, angle, false, remainCirclePaint);
             } else {
-                RectF rectP = new RectF(-radiusPass, -radiusPass, radiusPass, radiusPass);
+                if (rectP == null || rectR == null) {
+                    rectP = new RectF(-radiusPass, -radiusPass, radiusPass, radiusPass);
+                    rectR = new RectF(-radiusRemain, -radiusRemain, radiusRemain, radiusRemain);
+                }
                 canvas.drawArc(rectP, angle - 90, 360 - angle, false, passCirclePaint);
-                RectF rectR = new RectF(-radiusRemain, -radiusRemain, radiusRemain, radiusRemain);
                 canvas.drawArc(rectR, angle - 90, 360 - angle, false, remainCirclePaint);
             }
         }
         canvas.restore();
     }
+
 
     private void drawBundle(Canvas canvas) {
         canvas.save();
@@ -442,11 +485,11 @@ public class Timer extends View {
 
     private void drawText(Canvas canvas) {
         if (isFirst) {
+            Log.e(TAG, isFirst + "");
             textWidth = checkAndChangeTextSize(time, (int) maxTextWidth, textPaint);
             textHeight = textPaint.ascent() + textPaint.descent();
             textPaint.setTextSize(textSize);
         }
-        Log.e(TAG, "textSize:" + textPaint.getTextSize());
         canvas.drawText(time, -textWidth / 2, -textHeight / 2, textPaint);
     }
 
@@ -532,8 +575,11 @@ public class Timer extends View {
         return src;
     }
 
+    StringBuilder sb = new StringBuilder();
+
     private String formateTime(int hour, int minute, float second) {
-        StringBuilder sb = new StringBuilder();
+        if (sb.length() > 0)
+            sb.delete(0, sb.length());
         if (hour < 10) {
             sb.append("0");
         }
@@ -549,7 +595,6 @@ public class Timer extends View {
 
 
     private String angle2Time(float currentAngle) {
-
         switch ((int) (currentAngle / 90)) {
             // 0<=currentAngle<90  1.5'/s
             case 0:
