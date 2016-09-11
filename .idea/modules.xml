@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/NubiaClock.iml" filepath="$PROJECT_DIR$/NubiaClock.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nubiatimer/nubiatimer.iml" filepath="$PROJECT_DIR$/nubiatimer/nubiatimer.iml" />
     </modules>
   </component>
 </project>
